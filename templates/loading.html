@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Carregando...</title>
+
+<style>
+body{
+    background:#0f0f0f;
+    color:white;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:15px; /* espaço entre eles */
+}
+
+.loader{
+  border:8px solid #444;
+  border-top:8px solid #3982d4;
+  border-radius:50%;
+  width:90px;
+  height:90px;
+  animation:spin 1.3s linear infinite;
+}
+@keyframes spin{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+</style>
+</head>
+
+<body>
+
+<h2>Olá, seja bem vinda Yara!!</h2>
+<div class="loader"></div>
+<h3>Carregando suas tarefas..</h3>
+
+<script>
+setTimeout(() => {
+   window.location.href = "/tarefas";
+}, 5000);
+</script>
+
+</body>
+</html>
