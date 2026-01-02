@@ -2,11 +2,13 @@ from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 load_dotenv()
 
 app = Flask(__name__)
 
+# ------------------ CONEXÃO BANCO ------------------
 user = os.getenv("DB_USER")
 password = os.getenv("DB_PASSWORD")
 host = os.getenv("DB_HOST")
@@ -18,8 +20,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
+# ------------------ TABELA ------------------
 class Task(db.Model):
-    __tablename__ = 'tasks'   # nome exato da tabela do MySQL
+    __tablename__ = 'tasks'
 
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
@@ -28,37 +31,58 @@ class Task(db.Model):
     prazo = db.Column(db.Date)
     status = db.Column(db.String(20))
 
+
+# ------------------ LOADING PAGE ------------------
 @app.route("/")
+def loading():
+    return render_template("loading.html")
+
+
+# ------------------ PÁGINA PRINCIPAL ------------------
+@app.route("/tarefas")
 def home():
-    tarefas = Task.query.all()
+
+    prioridade = request.args.get("prioridade")
+    prazo = request.args.get("prazo")
+
+    query = Task.query
+
+    # filtro prioridade
+    if prioridade and prioridade != "":
+        query = query.filter(Task.prioridade == prioridade)
+
+    # filtro data
+    if prazo and prazo != "":
+        try:
+            data_formatada = datetime.strptime(prazo, "%Y-%m-%d").date()
+            query = query.filter(Task.prazo == data_formatada)
+        except:
+            pass
+
+    tarefas = query.all()
+
     return render_template("index.html", tarefas=tarefas)
 
-# Listando as tarefas
 
-@app.route("/tarefas")
-def listar_tarefas():
-    tarefas = Task.query.all()
-    lista = []
+# ------------------ PÁGINA NOVA TAREFA ------------------
+@app.route("/nova")
+def nova_tarefa():
+    return render_template("nova.html")
 
-    for t in tarefas:
-        lista.append({
-            "id": t.id,
-            "nome": t.nome,
-            "descricao": t.descricao,
-            "prioridade": t.prioridade,
-            "prazo": t.prazo.strftime("%y-%m-%d") if t.prazo else None,
-            "status": t.status
-        })
-    return jsonify(lista)
 
-# Adicionado nova Tarefa
-
+# ------------------ ADICIONAR ------------------
 @app.route("/adicionar", methods=["POST"])
 def adicionar():
+
     nome = request.form["nome"]
     descricao = request.form.get("descricao")
     prioridade = request.form.get("prioridade")
     prazo = request.form.get("prazo")
+
+    if prazo:
+        prazo = datetime.strptime(prazo, "%Y-%m-%d").date()
+    else:
+        prazo = None
 
     nova = Task(
         nome=nome,
@@ -73,12 +97,13 @@ def adicionar():
 
     return home()
 
-# Função de Editar tarefa
 
+# ------------------ EDITAR ------------------
 @app.route("/editar/<int:id>")
 def editar(id):
     tarefa = Task.query.get_or_404(id)
     return render_template("editar.html", tarefa=tarefa)
+
 
 @app.route("/atualizar/<int:id>", methods=["POST"])
 def atualizar(id):
@@ -87,14 +112,18 @@ def atualizar(id):
     tarefa.nome = request.form["nome"]
     tarefa.descricao = request.form.get("descricao")
     tarefa.prioridade = request.form.get("prioridade")
-    tarefa.prazo = request.form.get("prazo")
+
+    prazo = request.form.get("prazo")
+    if prazo:
+        tarefa.prazo = datetime.strptime(prazo, "%Y-%m-%d").date()
+
     tarefa.status = request.form.get("status")
 
     db.session.commit()
     return home()
 
-# Função de Concluir tarefa 
 
+# ------------------ CONCLUIR ------------------
 @app.route("/concluir/<int:id>")
 def concluir(id):
     tarefa = Task.query.get_or_404(id)
@@ -102,8 +131,8 @@ def concluir(id):
     db.session.commit()
     return home()
 
-# Função de Deletar tarefa
 
+# ------------------ DELETAR ------------------
 @app.route("/deletar/<int:id>")
 def deletar(id):
     tarefa = Task.query.get_or_404(id)
@@ -112,6 +141,6 @@ def deletar(id):
     return home()
 
 
-
+# ------------------ RUN ------------------
 if __name__ == "__main__":
     app.run(debug=True)
