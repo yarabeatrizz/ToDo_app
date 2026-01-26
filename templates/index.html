@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>ToDo App</title>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-
+    <meta charset="UTF-8">
+    <title>ToDo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container mt-4">
+<div class="container">
 
-    <h1 class="text-center mb-4">Minhas Tarefas ✔️</h1>
+    <div class="header">
+        <h1>Minhas Tarefas</h1>
+        <p>“Conhecer o padrão é o primeiro passo para entender o comportamento.”</p>
+        <p>— Dr. Spencer Reid, Criminal Minds</p>
+    </div>
 
-    <!-- FILTROS -->
-    <form class="card p-3 mb-4" method="GET" action="/">
-        <div class="row">
-            <div class="col">
-                <label>Filtrar por prioridade</label>
-                <select class="form-control" name="prioridade">
+    <!-- FILTRO -->
+    <form class="card" method="GET" action="/tarefas">
+        <div class="grid-filtro">
+            <div>
+                <label>Prioridade</label>
+                <select name="prioridade">
                     <option value="">Todas</option>
                     <option value="baixa">Baixa</option>
                     <option value="media">Média</option>
@@ -26,64 +28,57 @@
                 </select>
             </div>
 
-            <div class="col">
-                <label>Filtrar por prazo</label>
-                <input type="date" name="prazo" class="form-control">
+            <div>
+                <label>Prazo</label>
+                <input type="date" name="prazo">
             </div>
 
-            <div class="col d-flex align-items-end">
-                <button class="btn btn-primary w-100">Filtrar</button>
-            </div>
+            <button class="btn primary">Filtrar</button>
         </div>
     </form>
 
+
     <!-- BOTÃO NOVA TAREFA -->
-    <div class="text-end mb-3">
-        <a href="/nova" class="btn btn-success">➕ Nova Tarefa</a>
-    </div>
+<a href="/nova" class="btn-add">➕ Nova Tarefa</a>
 
-    <!-- LISTA -->
-    <ul class="list-group">
-        {% for t in tarefas %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
+<!-- LISTA DE TAREFAS -->
+{% for t in tarefas %}
+<div class="card {% if t.status == 'concluida' %}done{% endif %}">
 
-            <div>
-                <strong>{{ t.nome }}</strong><br>
-                <small>{{ t.descricao }}</small><br>
+    <h3>{{ t.nome }}</h3>
 
-                {% if t.prazo %}
-                <span class="badge bg-primary">
-                    Prazo: {{ t.prazo.strftime("%d/%m/%Y") }}
-                </span>
-                {% endif %}
-
-                {% if t.prioridade == 'alta' %}
-                    <span class="badge bg-danger">Alta</span>
-                {% elif t.prioridade == 'media' %}
-                    <span class="badge bg-warning text-dark">Média</span>
-                {% else %}
-                    <span class="badge bg-success">Baixa</span>
-                {% endif %}
-
-                <span class="badge bg-info text-dark">{{ t.status }}</span>
-            </div>
-
-            <div class="btn-group">
-                <a href="/concluir/{{t.id}}" class="btn btn-sm btn-primary">Concluir</a>
-                <a href="/editar/{{t.id}}" class="btn btn-sm btn-warning">Editar</a>
-                <a href="/deletar/{{t.id}}" class="btn btn-sm btn-danger">Excluir</a>
-            </div>
-
-        </li>
-        {% endfor %}
-    </ul>
-
-    {% if tarefas|length == 0 %}
-    <div class="alert alert-info text-center mt-3">
-        Nenhuma tarefa ainda 😴
-    </div>
+    {% if t.descricao %}
+        <p>{{ t.descricao }}</p>
     {% endif %}
 
+    <div class="info">
+        <span>📌 {{ t.prioridade }}</span>
+
+        {% if t.prazo %}
+            <span>📅 {{ t.prazo.strftime("%d/%m/%Y") }}</span>
+        {% endif %}
+
+        <span>⏳ {{ t.status }}</span>
+    </div>
+
+    <div class="acoes">
+        {% if t.status != 'concluida' %}
+        <a href="/concluir/{{ t.id }}" class="btn concluir">
+            ✔ Concluir
+        </a>
+        {% endif %}
+
+        <a href="/editar/{{ t.id }}" class="btn editar">
+            ✏ Editar
+        </a>
+
+        <a href="/deletar/{{ t.id }}" class="btn excluir">
+            🗑 Excluir
+        </a>
+    </div>
+
+    </div>
+    {% endfor %}
 </div>
 
 </body>

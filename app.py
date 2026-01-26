@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
@@ -95,7 +95,8 @@ def adicionar():
     db.session.add(nova)
     db.session.commit()
 
-    return home()
+    return redirect(url_for("home"))
+
 
 
 # ------------------ EDITAR ------------------
@@ -120,7 +121,8 @@ def atualizar(id):
     tarefa.status = request.form.get("status")
 
     db.session.commit()
-    return home()
+    return redirect(url_for("home"))
+
 
 
 # ------------------ CONCLUIR ------------------
@@ -129,7 +131,8 @@ def concluir(id):
     tarefa = Task.query.get_or_404(id)
     tarefa.status = "concluida"
     db.session.commit()
-    return home()
+    return redirect(url_for("home"))
+
 
 
 # ------------------ DELETAR ------------------
@@ -138,7 +141,8 @@ def deletar(id):
     tarefa = Task.query.get_or_404(id)
     db.session.delete(tarefa)
     db.session.commit()
-    return home()
+    return redirect(url_for("home"))
+
 
 
 # ------------------ RUN ------------------
